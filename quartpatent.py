@@ -11,32 +11,46 @@ import requests
 
 chromedriver_autoinstaller.install()
 browser=webdriver.Chrome()
-
-url="https://vidoc.impi.gob.mx/DocVidoc?param=UArQD03r3Uh6mcI3WYBduaA5g1uEGDCi"
-response= requests.get(url)
-status= response.status_code
+#url="https://vidoc.impi.gob.mx/DocVidoc?param=UArQD03r3Uh6mcI3WYBduaA5g1uEGDCi"
 StartID=13000
 EndID=14000
-count=0
+countRow=0
 
-if status==200:
-    for i in range(StartID,EndID):
-        #File as "Expediente"
-        urlFile="https://vidoc.impi.gob.mx/visor?usr=SIGA&texp=SI&tdoc=E&id=MX/a/2015/0"+str(i)
+for i in range(StartID,EndID):
+    #File as "Expediente"
+    #This iteration gets each file
+    urlFile="https://vidoc.impi.gob.mx/visor?usr=SIGA&texp=SI&tdoc=E&id=MX/a/2015/0"+str(i)
+    response= requests.get(urlFile)
+    status= response.status_code
+    if status==200:
         browser.get(urlFile)
         time.sleep(1)
         file_html = BeautifulSoup(browser.page_source, 'lxml')
         table=file_html.find('table')
         if table is not None:
-            table_rows = table.find_all('tr')
+            """
+            Structure of <tr/>:
+            Number (1),BarCode (2),Document (3),Description (4),Type (5),Date (6),PDF (7)
+            """
+            #The complete table if exists
+            table_rows = table.findAll('tr')
+            #Iterate all the rowd in the table
             for tr in table_rows:
-                td = tr.find_all('td')
-                row = [i.text for i in td]
-                print(row)
-        count=count+1
-        if count==1:
-            break 
+                #For this code every <td> has one element only
+                if tr.nextSibling!='\n':
+                    td = tr.findAll('td')
+                    for t in td:
+                        btn=t.findChildren('input',recursive=True)
+                        if btn:
+                            print('Hay input')    
+                        else:
+                            print(t.text)
+                    countRow=countRow+1
+                    if countRow==1:
+                        break 
+        if countRow==1:
+            break        
         
-    browser.quit()    
+browser.quit()    
         
    
