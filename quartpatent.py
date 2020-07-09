@@ -4,14 +4,35 @@ Quart: This program is a 'Demo' that will read patents and store them in a sprea
 """
 
 from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
 import chromedriver_autoinstaller
 from bs4 import BeautifulSoup
 import time
 import requests 
+from selenium.webdriver.chrome.options import Options
+from fake_useragent import UserAgent
 
 chromedriver_autoinstaller.install()
-browser=webdriver.Chrome()
-#url="https://vidoc.impi.gob.mx/DocVidoc?param=UArQD03r3Uh6mcI3WYBduaA5g1uEGDCi"
+download_dir='C:\\Users\\Acer\\Downloads'
+#Set options for chrome
+options = Options()
+profile = {
+           "plugins.plugins_list": [{"enabled": False, "name": "Chrome PDF Viewer"}], # Disable Chrome's PDF Viewer
+           "download.default_directory": download_dir , 
+           "download.extensions_to_open": "applications/pdf",
+           "plugins.always_open_pdf_externally": True
+           }
+
+options.add_experimental_option("prefs", profile)
+
+browser=webdriver.Chrome(chrome_options=options)
+browser.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
+  "source": """
+    Object.defineProperty(navigator, 'webdriver', {
+      get: () => undefined
+    })
+  """
+})
 StartID=13000
 EndID=14000
 countRow=0
@@ -24,7 +45,7 @@ for i in range(StartID,EndID):
     status= response.status_code
     if status==200:
         browser.get(urlFile)
-        time.sleep(1)
+        time.sleep(2)
         file_html = BeautifulSoup(browser.page_source, 'lxml')
         table=file_html.find('table')
         if table is not None:
@@ -40,9 +61,30 @@ for i in range(StartID,EndID):
                 if tr.nextSibling!='\n':
                     td = tr.findAll('td')
                     for t in td:
+                        #Id of the input for each row index 0
+                        #MainContent_gdDoctosExpediente_ImageButton1_0 
                         btn=t.findChildren('input',recursive=True)
                         if btn:
-                            print('Hay input')    
+                            chunks=str(btn[0]).split(' ')
+                            #Getting ID alone
+                            parts=chunks[2].split('=')
+                            val_name=parts[1] 
+                            javaScript = "document.getElementsByName("+val_name+")[0].click();"
+                            browser.execute_script(javaScript)
+                            time.sleep(1)
+                            pdf_source=''
+                            pdf_source = browser.find_element_by_tag_name('iframe').get_attribute("src")
+                            if pdf_source!='':
+                                #Get the url of the source
+                                time.sleep(1)
+                                browser.get(pdf_source)
+                                #Finf the href with innerText 'aquí'
+                                link=browser.find_element_by_tag_name('a')
+                                if link.text=='aquí':
+                                    link.click()
+                                    #Wait 10 seconds for download
+                                    time.sleep(10)
+                                
                         else:
                             print(t.text)
                     countRow=countRow+1
