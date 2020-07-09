@@ -10,7 +10,7 @@ from bs4 import BeautifulSoup
 import time
 import requests 
 from selenium.webdriver.chrome.options import Options
-from fake_useragent import UserAgent
+
 
 chromedriver_autoinstaller.install()
 download_dir='C:\\Users\\Acer\\Downloads'
@@ -26,13 +26,6 @@ profile = {
 options.add_experimental_option("prefs", profile)
 
 browser=webdriver.Chrome(chrome_options=options)
-browser.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
-  "source": """
-    Object.defineProperty(navigator, 'webdriver', {
-      get: () => undefined
-    })
-  """
-})
 StartID=13000
 EndID=14000
 countRow=0
@@ -49,18 +42,24 @@ for i in range(StartID,EndID):
         file_html = BeautifulSoup(browser.page_source, 'lxml')
         table=file_html.find('table')
         if table is not None:
-            """
-            Structure of <tr/>:
-            Number (1),BarCode (2),Document (3),Description (4),Type (5),Date (6),PDF (7)
-            """
             #The complete table if exists
             table_rows = table.findAll('tr')
-            #Iterate all the rowd in the table
+            #Iterate all the rows in the table
             for tr in table_rows:
-                #For this code every <td> has one element only
+                #Every <td> has one element only
+                txt_number=''
+                txt_barcode=''
+                txt_document=''
+                txt_desc=''
+                txt_type=''
+                txt_date=''
+                pdf_name=''
+                pdf_file_name=''
                 if tr.nextSibling!='\n':
                     td = tr.findAll('td')
+                    fieldPosition=0
                     for t in td:
+                        fieldPosition=fieldPosition+1
                         #Id of the input for each row index 0
                         #MainContent_gdDoctosExpediente_ImageButton1_0 
                         btn=t.findChildren('input',recursive=True)
@@ -71,6 +70,10 @@ for i in range(StartID,EndID):
                             val_name=parts[1] 
                             javaScript = "document.getElementsByName("+val_name+")[0].click();"
                             browser.execute_script(javaScript)
+                            #Get the name of the pdf document
+                            pdf_name=browser.find_element_by_class_name('modal-title').text
+                            pdf_name=str(pdf_name).strip()
+                            pdf_file_name=pdf_name.replace('/','_')
                             time.sleep(1)
                             pdf_source=''
                             pdf_source = browser.find_element_by_tag_name('iframe').get_attribute("src")
@@ -82,14 +85,45 @@ for i in range(StartID,EndID):
                                 link=browser.find_element_by_tag_name('a')
                                 if link.text=='aquí':
                                     link.click()
-                                    #Wait 10 seconds for download
-                                    time.sleep(10)
-                                
+                                    #Wait 'X' seconds for download
+                                    time.sleep(20)      
                         else:
-                            print(t.text)
+                            """
+                            Structure of <tr/>:
+                            Number (1),BarCode (2),Document (3),Description (4),Type (5),Date (6),PDF (7)
+                            """  
+                            if fieldPosition==1:
+                                txt_number=t.text
+                                continue
+                            if fieldPosition==2:
+                                txt_barcode=t.text
+                                continue
+                            if fieldPosition==3:
+                                txt_document=t.text
+                                continue 
+                            if fieldPosition==4:
+                                txt_desc=t.text
+                                continue
+                            if fieldPosition==5:
+                                txt_type=t.text
+                                continue  
+                            if fieldPosition==6:
+                                txt_date=t.text 
+                                continue            
+                    #End of loop of every td in a single row  
+                    print('pdf name:',pdf_name)  
+                    print('pdf_file',pdf_file_name)
+                    print('number: ',txt_number)
+                    print('barcode:',txt_barcode)
+                    print('document:',txt_document)
+                    print('desc:',txt_desc)
+                    print('type:',txt_type)
+                    print('date:',txt_date)
+                      
                     countRow=countRow+1
                     if countRow==1:
-                        break 
+                        break
+            #End of row loop         
         if countRow==1:
             break        
         
