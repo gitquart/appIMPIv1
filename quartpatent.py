@@ -25,7 +25,7 @@ profile = {
 
 options.add_experimental_option("prefs", profile)
 
-browser=webdriver.Chrome(chrome_options=options)
+browser=webdriver.Chrome(options=options)
 StartID=13000
 EndID=14000
 countRow=0
@@ -71,16 +71,17 @@ for i in range(StartID,EndID):
                             javaScript = "document.getElementsByName("+val_name+")[0].click();"
                             browser.execute_script(javaScript)
                             #Get the name of the pdf document
+                            time.sleep(2) #Time sleep to give time to read the 'modal-text'
                             pdf_name=browser.find_element_by_class_name('modal-title').text
                             pdf_name=str(pdf_name).strip()
                             pdf_file_name=pdf_name.replace('/','_')
-                            time.sleep(1)
                             pdf_source=''
                             pdf_source = browser.find_element_by_tag_name('iframe').get_attribute("src")
                             if pdf_source!='':
                                 #Get the url of the source
-                                time.sleep(1)
+                                time.sleep(2)
                                 browser.get(pdf_source)
+                                time.sleep(2)
                                 #Finf the href with innerText 'aquí'
                                 link=browser.find_element_by_tag_name('a')
                                 if link.text=='aquí':
@@ -127,6 +128,9 @@ for i in range(StartID,EndID):
         if countRow==1:
             break        
         
-browser.quit()    
+browser.quit() 
+
+    
+       
         
    
