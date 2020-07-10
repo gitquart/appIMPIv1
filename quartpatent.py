@@ -13,6 +13,7 @@ from selenium.webdriver.chrome.options import Options
 import xlwt 
 from xlwt import Workbook
 import os
+import readPDF as pdf
 
 
 chromedriver_autoinstaller.install()
@@ -101,7 +102,11 @@ for i in range(StartID,EndID):
                                     if link.text=='aquí':
                                         link.click()
                                         #Wait 'X' seconds for download
-                                        time.sleep(20)      
+                                        time.sleep(20) 
+                                        resPdf=pdf.readPdf(path)
+                                        if resPdf:
+                                            print('Pdf ready for:',)
+                                           
                             else:
                                 """
                                 Structure of <tr/>:
@@ -150,7 +155,7 @@ for i in range(StartID,EndID):
                         sheet1.write(countRow,6,pdf_file_name)
                      
                                     
-                        wb.save(download_dir+expedient_name+'.xlsx') 
+                        wb.save(path) 
                      
                    
                         if countRow==1:

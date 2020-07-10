@@ -10,17 +10,13 @@ Created on Fri May  8 16:41:05 2020
 # importing required modules 
 import PyPDF2 
 import os
-import writeFile
-
-dirGacetaPDF='/Users/ulysesrico/RespaldoMacUly/quart/Gaceta10epocaPDF/'
-dirGacetaTxt='/Users/ulysesrico/RespaldoMacUly/quart/Gaceta10epocaTxt/'
+import writeFile as wf
 
 
-#PDF pages are 0-based
-for file in os.listdir(dirGacetaPDF):
-    if file.endswith(".pdf") or file.endswith(".PDF"):
-        
-        pdfFileObj = open(dirGacetaPDF+file, 'rb') 
+def readPdf(fileWithPath,extensionToConvert):
+    #PDF pages are 0-based
+    if fileWithPath.endswith(".pdf") or fileWithPath.endswith(".PDF"):
+        pdfFileObj = open(fileWithPath, 'rb') 
         pdfReader = PyPDF2.PdfFileReader(pdfFileObj)
         if pdfReader.isEncrypted:
             pdfReader.decrypt('')
@@ -29,17 +25,19 @@ for file in os.listdir(dirGacetaPDF):
         nPages=pdfReader.numPages   
         i=0
         while i < nPages:
-            
             pageObj = pdfReader.getPage(i) 
             pageContent=pageObj.extractText()
                  
             #Get the filename without extension
             fileName=os.path.splitext(file)[0]
             #Create a File .txt
-            appendInfoToFile(dirGacetaTxt,fileName+".txt",pageContent)
+            wf.appendInfoToFile(dirGacetaTxt,fileName+"."+extensionToConvert,pageContent)
             i=i+1
-                
+        
         pdfFileObj.close() 
-        print("Terminó :",file)
-print("¡PROCESO TERMINADO!")        
+        return true
+        
+        
+        
+      
         

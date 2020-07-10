@@ -3,12 +3,12 @@
 """
 Created on Thu May 14 09:34:08 2020
 
-@author: ulysesrico
+@author: quart
 
 Program: Create a file with any extension
 """
 
-def appendInfoToFile(path,filename,strcontent):
-    txtFile=open(path+filename,'a+')
+def appendInfoToFile(fileandpath,strcontent):
+    txtFile=open(fileandpath,'a+')
     txtFile.write(strcontent)
     txtFile.close()
