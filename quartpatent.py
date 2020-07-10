@@ -4,12 +4,14 @@ Quart: This program is a 'Demo' that will read patents and store them in a sprea
 """
 
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
+#from selenium.webdriver.common.keys import Keys
 import chromedriver_autoinstaller
 from bs4 import BeautifulSoup
 import time
 import requests 
 from selenium.webdriver.chrome.options import Options
+import xlwt 
+from xlwt import Workbook
 
 
 chromedriver_autoinstaller.install()
@@ -38,7 +40,7 @@ for i in range(StartID,EndID):
     status= response.status_code
     if status==200:
         browser.get(urlFile)
-        time.sleep(2)
+        time.sleep(1)
         file_html = BeautifulSoup(browser.page_source, 'lxml')
         table=file_html.find('table')
         if table is not None:
@@ -73,17 +75,19 @@ for i in range(StartID,EndID):
                             #Get the name of the pdf document
                             time.sleep(2) #Time sleep to give time to read the 'modal-text'
                             pdf_name=browser.find_element_by_class_name('modal-title').text
+                            time.sleep(1)
                             pdf_name=str(pdf_name).strip()
                             pdf_file_name=pdf_name.replace('/','_')
                             pdf_source=''
                             pdf_source = browser.find_element_by_tag_name('iframe').get_attribute("src")
+                            time.sleep(2)
                             if pdf_source!='':
                                 #Get the url of the source
-                                time.sleep(2)
                                 browser.get(pdf_source)
                                 time.sleep(2)
                                 #Finf the href with innerText 'aquí'
                                 link=browser.find_element_by_tag_name('a')
+                                time.sleep(1)
                                 if link.text=='aquí':
                                     link.click()
                                     #Wait 'X' seconds for download
@@ -111,7 +115,9 @@ for i in range(StartID,EndID):
                             if fieldPosition==6:
                                 txt_date=t.text 
                                 continue            
-                    #End of loop of every td in a single row  
+                    #End of loop of every td in a single row 
+                    #Excel process
+                     
                     print('pdf name:',pdf_name)  
                     print('pdf_file',pdf_file_name)
                     print('number: ',txt_number)
