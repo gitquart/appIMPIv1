@@ -12,10 +12,25 @@ import PyPDF2
 import os
 import writeFile as wf
 
+"""
+readPdf
 
-def readPdf(fileWithPath,extensionToConvert):
+It includes the source of pdf with complete path, the destination folder and the extension
+of file to convert to.
+"""
+def readPdf(fileWithPath,destinationFolder,extensionToConvert):
+    
+    
     #PDF pages are 0-based
     if fileWithPath.endswith(".pdf") or fileWithPath.endswith(".PDF"):
+        #Split thr paths
+        source_chunk=os.path.split(fileWithPath)
+        sourcePath=source_chunk[0]
+        sourceFile=source_chunk[1]
+        
+        if destinationFolder==sourcePath or destinationFolder=='':
+            destinationFolder=sourcePath          
+            
         pdfFileObj = open(fileWithPath, 'rb') 
         pdfReader = PyPDF2.PdfFileReader(pdfFileObj)
         if pdfReader.isEncrypted:
@@ -29,13 +44,14 @@ def readPdf(fileWithPath,extensionToConvert):
             pageContent=pageObj.extractText()
                  
             #Get the filename without extension
-            fileName=os.path.splitext(file)[0]
+            destinationFileName=os.path.splitext(sourceFile)[0]
             #Create a File .txt
-            wf.appendInfoToFile(dirGacetaTxt,fileName+"."+extensionToConvert,pageContent)
+            pathAndFile=destinationFolder+destinationFileName+"."+extensionToConvert
+            wf.appendInfoToFile(pathAndFile,pageContent)
             i=i+1
-        
+            
         pdfFileObj.close() 
-        return true
+        return True
         
         
         
