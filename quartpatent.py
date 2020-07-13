@@ -30,13 +30,14 @@ profile = {
 options.add_experimental_option("prefs", profile)
 
 browser=webdriver.Chrome(options=options)
-StartID=13000
+#Start 13000
+StartID=5000
 EndID=14000
 countExpedient=0
 
 for i in range(StartID,EndID):
     #This iteration gets each file
-    urlExp="https://vidoc.impi.gob.mx/visor?usr=SIGA&texp=SI&tdoc=E&id=MX/a/2015/0"+str(i)
+    urlExp="https://vidoc.impi.gob.mx/visor?usr=SIGA&texp=SI&tdoc=E&id=MX/a/2015/00"+str(i)
     response= requests.get(urlExp)
     status= response.status_code
     if status==200:
@@ -48,7 +49,7 @@ for i in range(StartID,EndID):
         exp_html=''
         table=''
         exp_html = BeautifulSoup(browser.page_source, 'lxml')
-        time.sleep(1)
+        time.sleep(3)
         table=exp_html.find('table')
         expedient_name=exp_html.find('h3').text
         expedient_name=expedient_name.replace(' ','_')  
@@ -87,7 +88,7 @@ for i in range(StartID,EndID):
                                 javaScript = "document.getElementsByName("+val_name+")[0].click();"
                                 browser.execute_script(javaScript)
                                 #Get the name of the pdf document
-                                time.sleep(2) #Time sleep to give time to read the 'modal-text'
+                                time.sleep(3) #Time sleep to give time to read the 'modal-text'
                                 pdf_name=txt_document.replace('/','_')
                                 pdf_file_name=pdf_name+'.pdf'
                                 pdf_source=''
@@ -96,23 +97,25 @@ for i in range(StartID,EndID):
                                 if pdf_source!='':
                                     #Get the url of the source
                                     browser.get(pdf_source)
-                                    time.sleep(2)
+                                    time.sleep(5)
                                     #Finf the href with innerText 'aquí'
-                                    link=browser.find_element_by_tag_name('a')
-                                    time.sleep(1)
-                                    if link.text=='aquí':
-                                        link.click()
-                                        #Wait 'X' seconds for download
-                                        time.sleep(20) 
-                                        #Get the expedient web page again, due to change of pages
-                                        #it is needed to come back to a prior page
-                                        browser.execute_script('window.history.go(-1)')
-                                        browser.refresh()
-                                        #pathPdf=''
-                                        #pathPdf=download_dir+pdf_file_name
-                                        #resPdf=pdf.readPdf(pathPdf,'','txt')
-                                        #if resPdf:
+                                    lst_link=browser.find_elements_by_tag_name('a')
+                                    for link in lst_link:   
+                                        if link.text=='aquí':
+                                            link.click()
+                                            #Wait 'X' seconds for download
+                                            time.sleep(10) 
+                                            #Get the expedient web page again, due to change of pages
+                                            #it is needed to come back to a prior page
+                                            browser.execute_script('window.history.go(-1)')
+                                            browser.refresh()
+                                            #pathPdf=''
+                                            #pathPdf=download_dir+pdf_file_name
+                                            #resPdf=pdf.readPdf(pathPdf,'','txt')
+                                            #if resPdf:
                                             #print('Pdf ready for:',txt_document)
+                                            continue
+                                            
                                            
                             else:
                                 """
@@ -191,10 +194,10 @@ for i in range(StartID,EndID):
                         #if countRow==1:
                         #    break
                 #End of row loop 
-    countExpedient=countExpedient+1
-    print('Expedients so far:',str(countExpedient))                    
-    if countExpedient==100:
-        break        
+                countExpedient=countExpedient+1
+                print('Expedients so far:',str(countExpedient))                    
+                if countExpedient==47:
+                    break        
         
 browser.quit() 
 
