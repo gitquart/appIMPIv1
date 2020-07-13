@@ -10,8 +10,8 @@ from bs4 import BeautifulSoup
 import time
 import requests 
 from selenium.webdriver.chrome.options import Options
-import xlwt 
-from xlwt import Workbook
+from openpyxl import Workbook
+from openpyxl import load_workbook
 import os
 import readPDF as pdf
 
@@ -32,7 +32,7 @@ options.add_experimental_option("prefs", profile)
 browser=webdriver.Chrome(options=options)
 StartID=13000
 EndID=14000
-
+countExpedient=0
 
 for i in range(StartID,EndID):
     #This iteration gets each file
@@ -43,10 +43,12 @@ for i in range(StartID,EndID):
         browser.get(urlExp)
         time.sleep(1)
         path=''
+        pathPdf=''
         expedient_name=''
         exp_html=''
         table=''
         exp_html = BeautifulSoup(browser.page_source, 'lxml')
+        time.sleep(1)
         table=exp_html.find('table')
         expedient_name=exp_html.find('h3').text
         expedient_name=expedient_name.replace(' ','_')  
@@ -58,7 +60,7 @@ for i in range(StartID,EndID):
                 #The complete table if exists
                 table_rows = table.findAll('tr')
                 #Iterate all the rows in the table
-                countRow=0
+                countPatent=0
                 for tr in table_rows:
                     #Every <td> has one element only
                     txt_number=''
@@ -87,8 +89,7 @@ for i in range(StartID,EndID):
                                 #Get the name of the pdf document
                                 time.sleep(2) #Time sleep to give time to read the 'modal-text'
                                 pdf_name=txt_document.replace('/','_')
-                                pdf_file_name=pdf_name.replace('/','_')
-                                pdf_file_name=pdf_file_name+'.pdf'
+                                pdf_file_name=pdf_name+'.pdf'
                                 pdf_source=''
                                 pdf_source = browser.find_element_by_tag_name('iframe').get_attribute("src")
                                 time.sleep(2)
@@ -103,9 +104,15 @@ for i in range(StartID,EndID):
                                         link.click()
                                         #Wait 'X' seconds for download
                                         time.sleep(20) 
-                                        resPdf=pdf.readPdf(path)
-                                        if resPdf:
-                                            print('Pdf ready for:',)
+                                        #Get the expedient web page again, due to change of pages
+                                        #it is needed to come back to a prior page
+                                        browser.execute_script('window.history.go(-1)')
+                                        browser.refresh()
+                                        #pathPdf=''
+                                        #pathPdf=download_dir+pdf_file_name
+                                        #resPdf=pdf.readPdf(pathPdf,'','txt')
+                                        #if resPdf:
+                                            #print('Pdf ready for:',txt_document)
                                            
                             else:
                                 """
@@ -132,37 +139,62 @@ for i in range(StartID,EndID):
                                     continue            
                         #End of loop of every td in a single row 
                         #Excel process
-                        wb = Workbook()  
-                        sheet1 = wb.add_sheet('Patents') 
-                        #Write(row,column)
-                        #Headers
-                        sheet1.write(0, 0, 'Number') 
-                        sheet1.write(0,1,'Bar code')
-                        sheet1.write(0,2,'Document')
-                        sheet1.write(0,3, 'Description') 
-                        sheet1.write(0,4,'Type')
-                        sheet1.write(0,5,'Date')
-                        sheet1.write(0,6,'Pdf file')
+                        flag=False
+                        flag=os.path.isfile(path)
+                        if flag:
+                            #Expedient xls already exists
+                            wb = load_workbook(path)
+                            ws = wb['Patents']
+                         
+                        else:
+                            #Expedient xls is new 
+                            wb = Workbook()
+                            ws = wb.active
+                            ws.title = "Patents" 
+                            #Write(row,column)
+                            #Headers (h1,...)
+                            h1 = ws.cell(row = 1, column = 1)
+                            h1.value = 'Number'
+                            h2 = ws.cell(row = 1, column = 2)
+                            h2.value = 'Bar code'
+                            h3 = ws.cell(row = 1, column = 3)
+                            h3.value = 'Document'
+                            h4 = ws.cell(row = 1, column = 4)
+                            h4.value = 'Description'
+                            h5 = ws.cell(row = 1, column = 5)
+                            h5.value = 'Type'
+                            h6 = ws.cell(row = 1, column = 6)
+                            h6.value = 'Date'
+                            h7=ws.cell(row=1,column=7)
+                            h7.value='Pdf file'
                     
                         #Row
-                        countRow=countRow+1
-                        sheet1.write(countRow,0,txt_number)
-                        sheet1.write(countRow,1,txt_barcode)
-                        sheet1.write(countRow,2,txt_document)
-                        sheet1.write(countRow,3,txt_desc)
-                        sheet1.write(countRow,4,txt_type)
-                        sheet1.write(countRow,5,txt_date)
-                        sheet1.write(countRow,6,pdf_file_name)
-                     
-                                    
+                        countPatent=countPatent+1
+                        #As rows start at 1, then only inside row values the counPatent is added 1 again
+                        number = ws.cell(row = countPatent+1, column = 1)
+                        number.value = txt_number
+                        barCode=ws.cell(row = countPatent+1, column = 2)
+                        barCode.value=txt_barcode
+                        document=ws.cell(row = countPatent+1, column = 3)
+                        document.value=txt_document
+                        desc=ws.cell(row = countPatent+1, column = 4)
+                        desc.value=txt_desc
+                        vtype=ws.cell(row = countPatent+1, column = 5)
+                        vtype.value=txt_type
+                        vdate=ws.cell(row = countPatent+1, column = 6)
+                        vdate.value=txt_date
+                        vpdf=ws.cell(row = countPatent+1, column = 7)
+                        vpdf.value=pdf_file_name                   
                         wb.save(path) 
                      
                    
-                        if countRow==1:
-                            break
-                #End of row loop         
-            if countRow==1:
-                break        
+                        #if countRow==1:
+                        #    break
+                #End of row loop 
+    countExpedient=countExpedient+1
+    print('Expedients so far:',str(countExpedient))                    
+    if countExpedient==100:
+        break        
         
 browser.quit() 
 

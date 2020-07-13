@@ -19,8 +19,7 @@ It includes the source of pdf with complete path, the destination folder and the
 of file to convert to.
 """
 def readPdf(fileWithPath,destinationFolder,extensionToConvert):
-    
-    
+     
     #PDF pages are 0-based
     if fileWithPath.endswith(".pdf") or fileWithPath.endswith(".PDF"):
         #Split thr paths
@@ -46,7 +45,7 @@ def readPdf(fileWithPath,destinationFolder,extensionToConvert):
             #Get the filename without extension
             destinationFileName=os.path.splitext(sourceFile)[0]
             #Create a File .txt
-            pathAndFile=destinationFolder+destinationFileName+"."+extensionToConvert
+            pathAndFile=destinationFolder+'\\'+destinationFileName+"."+extensionToConvert
             wf.appendInfoToFile(pathAndFile,pageContent)
             i=i+1
             
